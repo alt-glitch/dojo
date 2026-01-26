@@ -10,6 +10,8 @@ The DOJO runs in a docker-in-docker setting, with the "outer" container using do
 
 ## Common Development Commands
 
+> **Note:** `deploy.sh` is for **development only**. For production deployment, see `docs/deployment.md`.
+
 ### Quick Development Setup
 
 ```bash

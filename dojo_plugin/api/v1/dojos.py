@@ -1,13 +1,10 @@
-
-import datetime
 import sys
 import traceback
 
-from CTFd.cache import cache
 from CTFd.models import Solves, Users, db
 from CTFd.plugins.challenges import get_chal_class
 from CTFd.utils.decorators import admins_only, authed_only, ratelimit
-from CTFd.utils.user import get_current_user, get_ip, is_admin
+from CTFd.utils.user import get_current_user, is_admin
 from flask import request
 from flask_restx import Namespace, Resource
 from sqlalchemy.sql import and_
@@ -104,18 +101,11 @@ class CreateDojo(Resource):
         public_key = data.get("public_key", "")
         private_key = data.get("private_key", "").replace("\r\n", "\n")
 
-        key = f"rl:{get_ip()}:{request.endpoint}"
-        timeout = int(datetime.timedelta(days=1).total_seconds())
-
-        if not is_admin() and cache.get(key) is not None:
-            return {"success": False, "error": "You can only create 1 dojo per day."}, 429
-
         try:
             dojo = dojo_create(user, repository, public_key, private_key, spec)
         except RuntimeError as e:
             return {"success": False, "error": str(e)}, 400
 
-        cache.set(key, 1, timeout=timeout)
         return {"success": True, "dojo": dojo.reference_id}
 
 
