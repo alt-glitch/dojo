@@ -71,3 +71,7 @@ api_v1.add_namespace(workspace_tokens_namespace, "/workspace_tokens")
 api_v1.add_namespace(workspace_namespace, "/workspace")
 api_v1.add_namespace(search_namespace, "/search")
 api_v1.add_namespace(test_error_namespace, "/test_error")
+
+if config.RL_ENABLED:
+    from .v1.rl import rl_namespace
+    api_v1.add_namespace(rl_namespace, "/rl")

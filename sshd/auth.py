@@ -27,6 +27,17 @@ def create_db_connection():
 
 def main():
     enter_path = pathlib.Path(__file__).parent.resolve() / "enter.py"
+    connecting_user = sys.argv[1] if len(sys.argv) > 1 else None
+
+    if connecting_user and connecting_user.startswith("rl_"):
+        os.environ.update(dict(
+            entry.split("=", maxsplit=1)
+            for entry in open("/etc/environment", "r").read().splitlines()
+        ))
+        rl_key = os.environ.get("RL_SSH_PUBLIC_KEY", "")
+        if rl_key:
+            print(f'command="{enter_path} {connecting_user}" {rl_key}')
+        return
 
     connection = create_db_connection()
     with connection.cursor() as cursor:

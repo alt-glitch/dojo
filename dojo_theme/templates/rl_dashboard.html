@@ -1,0 +1,83 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+  <div class="container">
+    <h1>RL Instances</h1>
+    <p id="rl-summary">Loading...</p>
+  </div>
+</div>
+<div class="container">
+  <div class="mb-3">
+    <button class="btn btn-danger btn-sm" onclick="killAll()">Kill All Instances</button>
+    <button class="btn btn-secondary btn-sm" onclick="refresh()">Refresh</button>
+  </div>
+  <table class="table table-striped table-sm" id="instances-table">
+    <thead>
+      <tr>
+        <th>Slot</th>
+        <th>SSH User</th>
+        <th>Challenge</th>
+        <th>Module</th>
+        <th>Dojo</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="instances-body">
+    </tbody>
+  </table>
+</div>
+
+<script>
+function refresh() {
+  fetch("/pwncollege_api/v1/rl/status")
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+      document.getElementById("rl-summary").textContent =
+        `Running: ${data.running} / ${data.max_instances}`;
+      const tbody = document.getElementById("instances-body");
+      tbody.innerHTML = "";
+      data.instances.forEach(inst => {
+        const created = inst.created_at
+          ? new Date(parseInt(inst.created_at) * 1000).toLocaleString()
+          : "—";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${inst.slot}</td>
+          <td><code>rl_${inst.slot}</code></td>
+          <td>${inst.challenge_id || "—"}</td>
+          <td>${inst.module_id || "—"}</td>
+          <td>${inst.dojo_id || "—"}</td>
+          <td><span class="badge badge-${inst.status === 'running' ? 'success' : 'warning'}">${inst.status}</span></td>
+          <td>${created}</td>
+          <td><button class="btn btn-danger btn-xs" onclick="kill(${inst.slot})">Kill</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    });
+}
+
+function kill(slot) {
+  fetch(`/pwncollege_api/v1/rl/instances/${slot}`, {method: "DELETE"})
+    .then(() => refresh());
+}
+
+function killAll() {
+  if (!confirm("Kill all RL instances?")) return;
+  fetch("/pwncollege_api/v1/rl/instances")
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+      Promise.all(data.instances.map(inst =>
+        fetch(`/pwncollege_api/v1/rl/instances/${inst.slot}`, {method: "DELETE"})
+      )).then(() => refresh());
+    });
+}
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+{% endblock %}

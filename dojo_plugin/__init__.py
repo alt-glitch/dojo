@@ -37,6 +37,7 @@ from .pages.research import research
 from .pages.feed import feed
 from .pages.index import static_html_override
 from .pages.test_error import test_error_pages
+from .pages.rl import rl
 from .api import api
 from .utils.events import publish_queued_events
 from .utils import listeners
@@ -145,6 +146,8 @@ def handle_authorization(default_handler):
     authorization = request.headers.get("Authorization")
     if authorization and authorization.startswith("Bearer "):
         return
+    if request.path.startswith("/pwncollege_api/v1/rl/"):
+        return
     default_handler()
 
 
@@ -198,9 +201,30 @@ def load(app):
     register_admin_plugin_menu_bar("Dojos", "/admin/dojos")
     register_admin_plugin_menu_bar("Desktops", "/admin/desktops")
 
+    from .config import RL_ENABLED
+    if RL_ENABLED:
+        app.register_blueprint(rl)
+        register_admin_plugin_menu_bar("RL", "/admin/rl")
+
+        from .utils.rl import rl_manager
+        with app.app_context():
+            rl_manager.init_slots()
+
+        from .config import RL_WARM_POOL_SIZE
+        if RL_WARM_POOL_SIZE > 0:
+            rl_manager.start_warm_pool()
+
     before_request_funcs = app.before_request_funcs[None]
     tokens_handler = next(func for func in before_request_funcs if func.__name__ == "tokens")
     before_request_funcs[before_request_funcs.index(tokens_handler)] = lambda: handle_authorization(tokens_handler)
+
+    csrf_handler = next((func for func in before_request_funcs if func.__name__ == "csrf"), None)
+    if csrf_handler:
+        def rl_csrf_wrapper():
+            if request.path.startswith("/pwncollege_api/v1/rl/"):
+                return
+            return csrf_handler()
+        before_request_funcs[before_request_funcs.index(csrf_handler)] = rl_csrf_wrapper
 
     if os.path.basename(sys.argv[0]) != "manage.py":
         bootstrap()

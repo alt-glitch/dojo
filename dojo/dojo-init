@@ -73,6 +73,9 @@ define AWS_SECRET_ACCESS_KEY
 define MAC_HOSTNAME
 define MAC_USERNAME
 define ENABLE_SPLUNK false
+define RL_ENABLED False
+define RL_MAX_INSTANCES 128
+define RL_WARM_POOL_SIZE 0
 
 mv /data/.config.env /data/config.env
 . /data/config.env

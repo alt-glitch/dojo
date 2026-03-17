@@ -23,6 +23,9 @@ x-ctfd-env: &ctfd-env
   INTERNET_FOR_ALL: ${INTERNET_FOR_ALL}
   MAC_HOSTNAME: ${MAC_HOSTNAME}
   MAC_USERNAME: ${MAC_USERNAME}
+  RL_ENABLED: ${RL_ENABLED}
+  RL_MAX_INSTANCES: ${RL_MAX_INSTANCES}
+  RL_WARM_POOL_SIZE: ${RL_WARM_POOL_SIZE}
 
 x-ctfd-volumes: &ctfd-volumes
   - /data/dojos:/var/dojos
@@ -263,11 +266,13 @@ services:
       - /data/ssh_host_keys:/etc/ssh:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /data/mac:/var/mac:ro
+      - /opt/pwn.college/sshd:/opt/sshd:ro
     environment:
       - DATABASE_URL=postgresql+psycopg2://${DB_USER}:${DB_PASS}@pgbouncer:5432/${DB_NAME}
       - REDIS_URL=redis://cache:6379
       - MAC_HOSTNAME=${MAC_HOSTNAME}
       - MAC_USERNAME=${MAC_USERNAME}
+      - RL_SSH_PUBLIC_KEY=${RL_SSH_PUBLIC_KEY}
     ports:
       - "22:22"
     depends_on:

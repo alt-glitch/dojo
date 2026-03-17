@@ -98,6 +98,10 @@ INTERNET_FOR_ALL = bool(ast.literal_eval(os.getenv("INTERNET_FOR_ALL") or "False
 MAC_HOSTNAME = os.getenv("MAC_HOSTNAME")
 MAC_USERNAME = os.getenv("MAC_USERNAME")
 
+RL_ENABLED = bool(ast.literal_eval(os.getenv("RL_ENABLED") or "False"))
+RL_MAX_INSTANCES = int(os.environ.get("RL_MAX_INSTANCES", "128"))
+RL_WARM_POOL_SIZE = int(os.environ.get("RL_WARM_POOL_SIZE", "0"))
+
 missing_errors = ["DOJO_HOST", "HOST_DATA_PATH"]
 for config_option in missing_errors:
     config_value = globals()[config_option]

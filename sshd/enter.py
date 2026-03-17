@@ -61,9 +61,14 @@ def main():
         print(f"{sys.argv[0]} <container_name>")
         exit(1)
     container_name = sys.argv[1]
-    user_id = int(container_name.split("_")[1])
 
-    docker_host, docker_client, is_mac = get_docker_client(user_id)
+    if container_name.startswith("rl_"):
+        docker_host = "unix:///var/run/docker.sock"
+        docker_client = docker.from_env()
+        is_mac = False
+    else:
+        user_id = int(container_name.split("_")[1])
+        docker_host, docker_client, is_mac = get_docker_client(user_id)
 
     try:
         container = docker_client.containers.get(container_name)

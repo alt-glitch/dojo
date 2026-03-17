@@ -21,6 +21,8 @@ RUN adduser -D hacker && \
     mkdir -p /home/hacker/.docker /home/hacker/.ssh && \
     chown -R hacker:hacker /home/hacker
 
+RUN for i in $(seq 0 255); do adduser -D "rl_$i" && addgroup "rl_$i" docker; done
+
 RUN mkdir -p /run/sshd
 
 WORKDIR /opt/sshd
